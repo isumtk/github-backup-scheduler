@@ -9,8 +9,7 @@ WORKDIR /app
 # Copy package.json and package-lock.json
 COPY package*.json ./
 
-RUN chmod +x script/backup.sh
-RUN chmod +x /etc/crontab
+
 
 # Install dependencies
 RUN npm install
@@ -18,6 +17,9 @@ RUN npm install
 
 # Copy app files
 COPY . .
+
+RUN chmod +x script/backup.sh
+# RUN chmod +x /etc/crontab
 
 # Build app
 RUN npm run build
