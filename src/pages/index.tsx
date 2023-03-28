@@ -1,44 +1,46 @@
 import Head from "next/head";
 import styles from "@/styles/Home.module.css";
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import AddRepoModal from "@/components/modal";
 
 interface BackUpData {
   url: string;
   frequency: string;
 }
 
-export default function Home() {
-  const handleBackupClick = async () => {
-    const response = await fetch("/api/backup", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        url: "https://github.com/isumtk/overlapping-squares.git",
-        frequency: "0 0 * * *",
-      }),
-    });
-    const data = await response.text();
-    console.log(data);
-  };
+const FrequencyType: { [key: string]: string } = {
+  "0 * * * *": "Hourly",
+  "0 0 * * *": "Daily",
+  "0 0 * * 0": "Weekly",
+  "0 0 */14 * *": "Fortnightly",
+  "0 0 1 * *": "Monthly",
+};
 
-  const handleAddRepoClick = async () => {
-    const response = await fetch("/api/add-repo", {
-      method: "POST",
+export default function Home() {
+  const [modal, setModal] = useState<boolean>(false);
+  const getBackupRepo = async () => {
+    const response = await fetch("/api/get-repo", {
+      method: "GET",
       headers: {
         "Content-Type": "application/json",
       },
-      body: JSON.stringify({
-        repoUrl: "https://github.com/isumtk/squares.git",
-        backupFrequency: "0 0 * * *",
-      }),
     });
+
     const data = await response.text();
-    console.log(data);
+    const { repos } = JSON.parse(data);
+    // console.log(repos);
+    setBackups(repos);
   };
 
   const [backups, setBackups] = useState<BackUpData[]>([]);
+
+  useEffect(() => {
+    getBackupRepo();
+  }, []);
+
+  useEffect(() => {
+    getBackupRepo();
+  }, [modal]);
 
   return (
     <>
@@ -48,17 +50,25 @@ export default function Home() {
         <meta name="viewport" content="width=device-width, initial-scale=1" />
         <link rel="icon" href="/favicon.ico" />
       </Head>
+      {modal && <AddRepoModal closeModal={() => setModal(false)} />}
       <main className={styles.main}>
         <header className={styles.header}>
           <h2 className={styles.header_title}>Github Backup Scheduler</h2>
-          <button className={styles.option_button}>Add Backup</button>
+          <button
+            className={styles.option_button}
+            onClick={() => setModal(true)}
+          >
+            Add Backup
+          </button>
         </header>
         <div className={styles.body_content}>
           {backups.length > 0 ? (
             backups.map((backup, idx) => (
               <article className={styles.backup_element} key={idx}>
                 <p className={styles.backup_repo_name}> {backup.url}</p>
-                <button>{backup.frequency}</button>
+                <button className={styles.backup_repo_frequency}>
+                  {FrequencyType[`${backup.frequency}`]}
+                </button>
               </article>
             ))
           ) : (

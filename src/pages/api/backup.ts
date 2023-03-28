@@ -1,8 +1,8 @@
 import { NextApiRequest, NextApiResponse } from "next";
 import { exec } from "child_process";
 
-async function checkRepoValidity(url: string): Promise<boolean> {
-  const regex = /^https:\/\/github\.com\/([^\/]+)\/([^\/]+)\.git$/;
+export async function checkRepoValidity(url: string): Promise<boolean> {
+  const regex = /https:\/\/github\.com\/([\w-]+)\/([\w-]+)/;
   const match = url.match(regex);
 
   if (!match) {
@@ -10,6 +10,8 @@ async function checkRepoValidity(url: string): Promise<boolean> {
   }
 
   const [_, owner, repo] = match;
+
+  // console.log({ owner, repo });
 
   const apiUrl = `https://api.github.com/repos/${owner}/${repo}`;
 
@@ -31,26 +33,30 @@ export default async function handler(
   }
 
   const url = req.body.url;
-  const isValid = await checkRepoValidity(url);
+  const frequency = req.body.frequency;
+  // const isValid = await checkRepoValidity(url);
 
-  if (!isValid) {
-    return res.status(404).send("Invalid repository");
-  }
+  // if (!isValid) {
+  //   return res.status(404).send("Invalid repository");
+  // }
 
   const backupPromise = new Promise<string>((resolve, reject) => {
-    const child = exec(`./script/backup.sh ${url}`, (error, stdout, stderr) => {
-      if (error) {
-        console.error(`Error executing Bash script: ${error}`);
-        reject(`Error executing Bash script ${error}`);
-      }
+    const child = exec(
+      `./script/backup.sh ${url} ${frequency}`,
+      (error, stdout, stderr) => {
+        if (error) {
+          console.error(`Error executing Bash script: ${error}`);
+          reject(`Error executing Bash script ${error}`);
+        }
 
-      if (stderr) {
-        console.error(`Error backing up repositories: ${stderr}`);
-        reject(`Error backing up repositories, ${stderr}`);
-      }
+        if (stderr) {
+          console.error(`Error backing up repositories: ${stderr}`);
+          reject(`Error backing up repositories, ${stderr}`);
+        }
 
-      resolve(stdout);
-    });
+        resolve(stdout);
+      }
+    );
 
     child.on("close", (code: string) => {
       console.log(`child process exited with code ${code}`);

@@ -1,6 +1,7 @@
 #!/bin/sh
 
 REPO_URL="$1"
+BACKUP_FREQ="$2"
 
 cd backup
 
@@ -9,7 +10,7 @@ if [ -z "$1" ]; then
   exit 1
 fi
 
-git clone --quiet $REPO_URL || {
+git clone --quiet $REPO_URL.git || {
   echo "ERROR: Failed to clone repository."
   exit 1
 }
@@ -34,5 +35,9 @@ fi
 
 echo "Backup Successful."
 echo "Backup stored in backup folder."
+
+echo "$BACKUP_FREQ ./script/backup.sh $REPO_URL" >> /etc/crontab
+
+echo "Created Cron Job."
 
 exit

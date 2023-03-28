@@ -93,3 +93,17 @@
   font-weight: 500;
   font-family: "Roboto", sans-serif;
 }
+
+.backup_repo_frequency {
+  font-size: 1rem;
+  font-weight: 500;
+  font-family: "Roboto", sans-serif;
+  padding: 5px;
+  color: white;
+  border: none;
+  outline: none;
+  background-color: #6246ea;
+  user-select: none;
+  border-radius: 4px;
+  width: 100px;
+}
